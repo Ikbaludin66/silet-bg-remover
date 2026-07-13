@@ -10,10 +10,6 @@
     {
       "src": "/remove-bg",
       "dest": "server.js"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "public/$1"
     }
   ]
 }
