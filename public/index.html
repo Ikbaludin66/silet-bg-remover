@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Background Remover</title>
+    <!-- Menghubungkan ke file CSS lokal yang baru dibuat -->
+    <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+
+    <header>
+        <div class="header-container">
+            <div class="logo">Silet<span>BG</span></div>
+            <span class="badge">AI Powered</span>
+        </div>
+    </header>
+
+    <main>
+        <div class="card">
+            <h2>Hapus Latar Belakang Gambar</h2>
+            <p class="subtitle">Unggah foto Anda dan biarkan sistem menghapus latar belakang secara otomatis.</p>
+
+            <form id="uploadForm">
+                <!-- Zona Klik File -->
+                <div class="dropzone" onclick="document.getElementById('imageInput').click()">
+                    <input type="file" id="imageInput" name="image" accept="image/*" class="hidden" required>
+                    
+                    <div id="dropzoneContent">
+                        <div class="upload-icon">📁</div>
+                        <div class="upload-text"><span>Pilih file gambar</span> atau seret ke sini</div>
+                        <p class="upload-hint">Mendukung PNG, JPG, JPEG (Maks. 5MB)</p>
+                    </div>
+
+                    <!-- Elemen Pratinjau Gambar -->
+                    <div id="previewContainer" class="hidden">
+                        <div class="preview-box">
+                            <img id="imagePreview" src="#" alt="Preview">
+                            <button type="button" id="removePreviewBtn" class="btn-hapus">✕</button>
+                        </div>
+                    </div>
+                </div>
+
+                <button type="submit" id="submitBtn" class="btn-proses">
+                    <span id="btnText">Proses Sekarang</span>
+                </button>
+            </form>
+
+            <!-- Bagian Hasil Gambar -->
+            <div id="resultContainer" class="hidden result-area">
+                <div class="success-tag">✓ Latar belakang berhasil dihapus!</div>
+                <div class="checkerboard">
+                    <img id="resultImage" src="#" alt="Hasil">
+                </div>
+                <a id="downloadBtn" href="#" download="hasil-no-bg.png" class="btn-unduh">Unduh Gambar</a>
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        <p>&copy; 2026 SiletBG. Dibuat dengan Node.js secara lokal.</p>
+    </footer>
+
+    <script>
+        const imageInput = document.getElementById('imageInput');
+        const uploadForm = document.getElementById('uploadForm');
+        const previewContainer = document.getElementById('previewContainer');
+        const dropzoneContent = document.getElementById('dropzoneContent');
+        const imagePreview = document.getElementById('imagePreview');
+        const removePreviewBtn = document.getElementById('removePreviewBtn');
+        const submitBtn = document.getElementById('submitBtn');
+        const btnText = document.getElementById('btnText');
+        const resultContainer = document.getElementById('resultContainer');
+        const resultImage = document.getElementById('resultImage');
+        const downloadBtn = document.getElementById('downloadBtn');
+
+        imageInput.addEventListener('change', function() {
+            const file = this.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    imagePreview.src = e.target.result;
+                    dropzoneContent.classList.add('hidden');
+                    previewContainer.classList.remove('hidden');
+                }
+                reader.readAsDataURL(file);
+                resultContainer.classList.add('hidden');
+            }
+        });
+
+        removePreviewBtn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            imageInput.value = '';
+            previewContainer.classList.add('hidden');
+            dropzoneContent.classList.remove('hidden');
+            resultContainer.classList.add('hidden');
+        });
+
+        uploadForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData();
+            formData.append('image', imageInput.files[0]);
+
+            submitBtn.disabled = true;
+            btnText.innerText = 'Sedang Memproses...';
+            resultContainer.classList.add('hidden');
+
+            try {
+                const response = await fetch('/remove-bg', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    resultImage.src = data.imageUrl;
+                    downloadBtn.href = data.imageUrl;
+                    resultContainer.classList.remove('hidden');
+                } else {
+                    alert(data.error || 'Terjadi kesalahan.');
+                }
+            } catch (error) {
+                alert('Gagal terhubung ke server.');
+            } finally {
+                submitBtn.disabled = false;
+                btnText.innerText = 'Proses Sekarang';
+            }
+        });
+    </script>
+</body>
+</html>
