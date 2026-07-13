@@ -17,7 +17,8 @@ const storage = multer.memoryStorage();
 const upload = multer({ storage: storage });
 
 // Menyajikan file statis halaman utama dari folder public
-app.use(express.static('public'));
+app.use(express.static(__dirname));
+
 
 // RUTE UTAMA PEMROSESAN GAMBAR HAPUS BACKGROUND
 app.post('/remove-bg', upload.single('image'), async (req, res) => {
