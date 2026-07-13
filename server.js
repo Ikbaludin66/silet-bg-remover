@@ -3,15 +3,21 @@ const express = require('express');
 const multer = require('multer');
 const axios = require('axios');
 const FormData = require('form-data');
+const path = require('path');
 
 const app = express();
 const port = process.env.PORT || 3000;
 
-// Menggunakan memoryStorage agar gambar tidak disimpan ke harddisk Vercel
 const storage = multer.memoryStorage();
 const upload = multer({ storage: storage });
 
-app.use(express.static('public'));
+// Menyajikan file statis dari folder public jika tersedia
+app.use(express.static(path.join(__dirname, 'public')));
+
+// PERBAIKAN: Menambahkan rute manual untuk membaca index.html jika folder public tidak terbaca otomatis
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
 
 app.post('/remove-bg', upload.single('image'), async (req, res) => {
     try {
@@ -21,7 +27,6 @@ app.post('/remove-bg', upload.single('image'), async (req, res) => {
 
         const formData = new FormData();
         formData.append('size', 'auto');
-        // Membaca file langsung dari memori RAM (Buffer)
         formData.append('image_file', req.file.buffer, {
             filename: req.file.originalname,
             contentType: req.file.mimetype
@@ -38,11 +43,9 @@ app.post('/remove-bg', upload.single('image'), async (req, res) => {
             responseType: 'arraybuffer'
         });
 
-        // Mengubah hasil gambar menjadi format Base64 aman
         const base64Image = Buffer.from(response.data).toString('base64');
         const imageUrl = `data:${req.file.mimetype};base64,${base64Image}`;
 
-        // Kirim langsung ke tampilan frontend
         res.json({
             message: 'Background berhasil dihapus!',
             imageUrl: imageUrl
@@ -63,7 +66,6 @@ app.post('/remove-bg', upload.single('image'), async (req, res) => {
     }
 });
 
-// Baris wajib untuk serverless deployment
 module.exports = app;
 
 if (process.env.NODE_ENV !== 'production') {
