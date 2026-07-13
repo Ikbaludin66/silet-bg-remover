@@ -1,4 +1,3 @@
-
 require('dotenv').config();
 const express = require('express');
 const multer = require('multer');
@@ -12,12 +11,19 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// PENTING: Tambahkan route utama agar tidak "Cannot GET /"
+app.get('/', (req, res) => {
+    res.status(200).json({
+        message: "Server Silet BG Remover aktif dan berjalan!",
+        endpoint: "/api/remove-bg"
+    });
+});
+
+// Memakai memoryStorage agar ramah serverless
 const storage = multer.memoryStorage();
 const upload = multer({ storage: storage });
 
-app.use(express.static('public'));
-
-// Rute API pemrosesan gambar
+// Rute API pemrosesan gambar hapus background
 app.post('/api/remove-bg', upload.single('image'), async (req, res) => {
     try {
         if (!req.file) {
@@ -31,9 +37,10 @@ app.post('/api/remove-bg', upload.single('image'), async (req, res) => {
             contentType: req.file.mimetype
         });
 
+        // Catatan kecil: Endpoint remove.bg resmi biasanya https://api.remove.bg/v1.0/removebg
         const response = await axios({
             method: 'post',
-            url: 'https://remove.bg',
+            url: 'https://api.remove.bg/v1.0/removebg',
             data: formData,
             headers: {
                 ...formData.getHeaders(),
@@ -51,10 +58,10 @@ app.post('/api/remove-bg', upload.single('image'), async (req, res) => {
         });
 
     } catch (error) {
-        console.error('Error info:', error.message);
+        console.error('Error detail:', error.message);
         return res.status(500).json({ error: 'Gagal memproses gambar melalui API Cloud.' });
     }
 });
 
-// Mengekspor aplikasi murni tanpa app.listen lokal agar tidak crash di Vercel
+// Ekspor mutlak agar Express dikenali sebagai Serverless Function oleh Vercel
 module.exports = app;
