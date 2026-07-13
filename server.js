@@ -12,12 +12,7 @@ const app = express();
 // 2. Ubah port agar fleksibel saat diunggah ke server hosting internet nanti
 const port = process.env.PORT || 3000;
 
-if (!fs.existsSync(path.join(__dirname, 'uploads'))) {
-    fs.mkdirSync(path.join(__dirname, 'uploads'));
-}
-if (!fs.existsSync(path.join(__dirname, 'public'))) {
-    fs.mkdirSync(path.join(__dirname, 'public'));
-}
+
 
 const upload = multer({ dest: 'uploads/' });
 
