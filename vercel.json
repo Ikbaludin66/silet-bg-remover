@@ -12,11 +12,12 @@
       "dest": "server.js"
     },
     {
-      "handle": "filesystem"
+      "src": "/style.css",
+      "dest": "public/style.css"
     },
     {
       "src": "/(.*)",
-      "dest": "public/$1"
+      "dest": "index.html"
     }
   ]
 }
