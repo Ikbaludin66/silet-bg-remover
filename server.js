@@ -1,3 +1,4 @@
+
 require('dotenv').config();
 const express = require('express');
 const multer = require('multer');
@@ -11,11 +12,12 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Memakai memoryStorage agar ramah serverless (tanpa harddisk fisik)
 const storage = multer.memoryStorage();
 const upload = multer({ storage: storage });
 
-// Rute API pemrosesan gambar hapus background
+app.use(express.static('public'));
+
+// Rute API pemrosesan gambar
 app.post('/api/remove-bg', upload.single('image'), async (req, res) => {
     try {
         if (!req.file) {
@@ -49,10 +51,10 @@ app.post('/api/remove-bg', upload.single('image'), async (req, res) => {
         });
 
     } catch (error) {
-        console.error('Error detail:', error.message);
+        console.error('Error info:', error.message);
         return res.status(500).json({ error: 'Gagal memproses gambar melalui API Cloud.' });
     }
 });
 
-// Ekspor mutlak agar Express dikenali sebagai Serverless Function oleh Vercel
+// Mengekspor aplikasi murni tanpa app.listen lokal agar tidak crash di Vercel
 module.exports = app;
