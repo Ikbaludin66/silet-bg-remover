@@ -119,7 +119,9 @@
 
             try {
                 // PERBAIKAN UTAMA: Menggunakan URL dinamis agar Vercel dapat menangkap data secara online
-                const targetUrl = `${window.location.origin}/remove-bg`;
+                const targetUrl = '/remove-bg';
+
+
                 const response = await fetch(targetUrl, {
                     method: 'POST',
                     body: formData
