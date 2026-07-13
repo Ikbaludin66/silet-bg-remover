@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Background Remover</title>
-    <!-- Menghubungkan ke file CSS lokal yang baru dibuat -->
+    <title>SiletBG - Hapus Background Gambar Instan</title>
+    <!-- Menghubungkan ke file CSS lokal -->
     <link rel="stylesheet" href="/style.css">
 </head>
 <body>
@@ -19,10 +19,10 @@
     <main>
         <div class="card">
             <h2>Hapus Latar Belakang Gambar</h2>
-            <p class="subtitle">Unggah foto Anda dan biarkan sistem menghapus latar belakang secara otomatis.</p>
+            <p class="subtitle">Unggah foto Anda dan biarkan kecerdasan buatan menghapus latar belakang secara otomatis.</p>
 
             <form id="uploadForm">
-                <!-- Zona Klik File -->
+                <!-- Zona Klik File Upload -->
                 <div class="dropzone" onclick="document.getElementById('imageInput').click()">
                     <input type="file" id="imageInput" name="image" accept="image/*" class="hidden" required>
                     
@@ -32,35 +32,37 @@
                         <p class="upload-hint">Mendukung PNG, JPG, JPEG (Maks. 5MB)</p>
                     </div>
 
-                    <!-- Elemen Pratinjau Gambar -->
+                    <!-- Elemen Pratinjau Gambar Sebelum Diproses -->
                     <div id="previewContainer" class="hidden">
                         <div class="preview-box">
                             <img id="imagePreview" src="#" alt="Preview">
-                            <button type="button" id="removePreviewBtn" class="btn-hapus">✕</button>
+                            <button type="button" id="removePreviewBtn" class="btn-hapus" title="Hapus Gambar">✕</button>
                         </div>
                     </div>
                 </div>
 
+                <!-- Tombol Eksekusi -->
                 <button type="submit" id="submitBtn" class="btn-proses">
                     <span id="btnText">Proses Sekarang</span>
                 </button>
             </form>
 
-            <!-- Bagian Hasil Gambar -->
+            <!-- Bagian Hasil Pemrosesan Gambar -->
             <div id="resultContainer" class="hidden result-area">
                 <div class="success-tag">✓ Latar belakang berhasil dihapus!</div>
                 <div class="checkerboard">
-                    <img id="resultImage" src="#" alt="Hasil">
+                    <img id="resultImage" src="#" alt="Hasil Tanpa Background">
                 </div>
-                <a id="downloadBtn" href="#" download="hasil-no-bg.png" class="btn-unduh">Unduh Gambar</a>
+                <a id="downloadBtn" href="#" download="siletbg-hasil.png" class="btn-unduh">Unduh Gambar Hasil</a>
             </div>
         </div>
     </main>
 
     <footer>
-        <p>&copy; 2026 SiletBG. Dibuat dengan Node.js secara lokal.</p>
+        <p>&copy; 2026 SiletBG. Berjalan resmi di Cloud Vercel.</p>
     </footer>
 
+    <!-- Logika Frontend Aplikasi -->
     <script>
         const imageInput = document.getElementById('imageInput');
         const uploadForm = document.getElementById('uploadForm');
@@ -74,6 +76,7 @@
         const resultImage = document.getElementById('resultImage');
         const downloadBtn = document.getElementById('downloadBtn');
 
+        // Fungsi menampilkan pratinjau gambar saat dipilih
         imageInput.addEventListener('change', function() {
             const file = this.files[0];
             if (file) {
@@ -88,26 +91,36 @@
             }
         });
 
+        // Fungsi tombol x untuk membatalkan pilihan gambar
         removePreviewBtn.addEventListener('click', function(e) {
-            e.stopPropagation();
+            e.stopPropagation(); // Mencegah dropzone terklik kembali
             imageInput.value = '';
             previewContainer.classList.add('hidden');
             dropzoneContent.classList.remove('hidden');
             resultContainer.classList.add('hidden');
         });
 
+        // Proses pengiriman data gambar ke server cloud Vercel
         uploadForm.addEventListener('submit', async function(e) {
             e.preventDefault();
             
+            if (!imageInput.files[0]) {
+                alert('Silakan pilih gambar terlebih dahulu!');
+                return;
+            }
+
             const formData = new FormData();
             formData.append('image', imageInput.files[0]);
 
+            // Mengubah status tombol menjadi animasi memuat (loading)
             submitBtn.disabled = true;
             btnText.innerText = 'Sedang Memproses...';
             resultContainer.classList.add('hidden');
 
             try {
-                const response = await fetch('/remove-bg', {
+                // PERBAIKAN UTAMA: Menggunakan URL dinamis agar Vercel dapat menangkap data secara online
+                const targetUrl = `${window.location.origin}/remove-bg`;
+                const response = await fetch(targetUrl, {
                     method: 'POST',
                     body: formData
                 });
@@ -115,15 +128,21 @@
                 const data = await response.json();
 
                 if (response.ok) {
+                    // Menampilkan gambar berformat Base64 yang dikirim server
                     resultImage.src = data.imageUrl;
                     downloadBtn.href = data.imageUrl;
                     resultContainer.classList.remove('hidden');
+                    
+                    // Otomatis gulir layar ke bawah untuk melihat hasil
+                    resultContainer.scrollIntoView({ behavior: 'smooth' });
                 } else {
-                    alert(data.error || 'Terjadi kesalahan.');
+                    alert(data.error || 'Terjadi kesalahan pada sistem pemrosesan.');
                 }
             } catch (error) {
-                alert('Gagal terhubung ke server.');
+                console.error('Error info:', error);
+                alert('Gagal terhubung ke server cloud. Pastikan jaringan internet Anda stabil.');
             } finally {
+                // Mengembalikan tombol ke status siap pakai
                 submitBtn.disabled = false;
                 btnText.innerText = 'Proses Sekarang';
             }
