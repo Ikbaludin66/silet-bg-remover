@@ -15,9 +15,6 @@ const upload = multer({ storage: storage });
 app.use(express.static(path.join(__dirname, 'public')));
 
 // PERBAIKAN: Menambahkan rute manual untuk membaca index.html jika folder public tidak terbaca otomatis
-app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'index.html'));
-});
 
 app.post('/remove-bg', upload.single('image'), async (req, res) => {
     try {
