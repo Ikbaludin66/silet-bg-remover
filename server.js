@@ -1,22 +1,17 @@
-// 1. Tambahkan baris ini di PALING ATAS file (Baris nomor 1)
 require('dotenv').config();
-
 const express = require('express');
 const multer = require('multer');
 const axios = require('axios');
 const FormData = require('form-data');
-const path = require('path');
-const fs = require('fs');
 
 const app = express();
-// 2. Ubah port agar fleksibel saat diunggah ke server hosting internet nanti
 const port = process.env.PORT || 3000;
 
+// Menggunakan memoryStorage agar gambar tidak disimpan ke harddisk Vercel
+const storage = multer.memoryStorage();
+const upload = multer({ storage: storage });
 
-
-const upload = multer({ dest: 'uploads/' });
-
-app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.static('public'));
 
 app.post('/remove-bg', upload.single('image'), async (req, res) => {
     try {
@@ -24,13 +19,13 @@ app.post('/remove-bg', upload.single('image'), async (req, res) => {
             return res.status(400).json({ error: 'Mohon unggah file gambar terlebih dahulu.' });
         }
 
-        const inputPath = req.file.path;
-        const outputFileName = `no-bg-${Date.now()}.png`;
-        const outputPath = path.join(__dirname, 'public', outputFileName);
-
         const formData = new FormData();
         formData.append('size', 'auto');
-        formData.append('image_file', fs.createReadStream(inputPath));
+        // Membaca file langsung dari memori RAM (Buffer)
+        formData.append('image_file', req.file.buffer, {
+            filename: req.file.originalname,
+            contentType: req.file.mimetype
+        });
 
         const response = await axios({
             method: 'post',
@@ -38,18 +33,19 @@ app.post('/remove-bg', upload.single('image'), async (req, res) => {
             data: formData,
             headers: {
                 ...formData.getHeaders(),
-                // 3. PERBAIKAN: Mengambil API Key dari file .env secara aman
                 'X-Api-Key': process.env.REMOVE_BG_API_KEY, 
             },
             responseType: 'arraybuffer'
         });
 
-        fs.writeFileSync(outputPath, response.data);
-        fs.unlinkSync(inputPath); 
+        // Mengubah hasil gambar menjadi format Base64 aman
+        const base64Image = Buffer.from(response.data).toString('base64');
+        const imageUrl = `data:${req.file.mimetype};base64,${base64Image}`;
 
+        // Kirim langsung ke tampilan frontend
         res.json({
             message: 'Background berhasil dihapus!',
-            imageUrl: `/${outputFileName}`
+            imageUrl: imageUrl
         });
 
     } catch (error) {
@@ -67,7 +63,11 @@ app.post('/remove-bg', upload.single('image'), async (req, res) => {
     }
 });
 
-app.listen(port, () => {
-    console.log(`Server running at http://localhost:${port}`);
-});
+// Baris wajib untuk serverless deployment
 module.exports = app;
+
+if (process.env.NODE_ENV !== 'production') {
+    app.listen(port, () => {
+        console.log(`Server running at http://localhost:${port}`);
+    });
+}
