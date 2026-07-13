@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SiletBG - Hapus Background Gambar Instan</title>
-    <!-- Menghubungkan ke file CSS lokal -->
     <link rel="stylesheet" href="/style.css">
 </head>
 <body>
@@ -22,7 +21,6 @@
             <p class="subtitle">Unggah foto Anda dan biarkan kecerdasan buatan menghapus latar belakang secara otomatis.</p>
 
             <form id="uploadForm">
-                <!-- Zona Klik File Upload -->
                 <div class="dropzone" onclick="document.getElementById('imageInput').click()">
                     <input type="file" id="imageInput" name="image" accept="image/*" class="hidden" required>
                     
@@ -32,7 +30,6 @@
                         <p class="upload-hint">Mendukung PNG, JPG, JPEG (Maks. 5MB)</p>
                     </div>
 
-                    <!-- Elemen Pratinjau Gambar Sebelum Diproses -->
                     <div id="previewContainer" class="hidden">
                         <div class="preview-box">
                             <img id="imagePreview" src="#" alt="Preview">
@@ -41,13 +38,11 @@
                     </div>
                 </div>
 
-                <!-- Tombol Eksekusi -->
                 <button type="submit" id="submitBtn" class="btn-proses">
                     <span id="btnText">Proses Sekarang</span>
                 </button>
             </form>
 
-            <!-- Bagian Hasil Pemrosesan Gambar -->
             <div id="resultContainer" class="hidden result-area">
                 <div class="success-tag">✓ Latar belakang berhasil dihapus!</div>
                 <div class="checkerboard">
@@ -62,7 +57,6 @@
         <p>&copy; 2026 SiletBG. Berjalan resmi di Cloud Vercel.</p>
     </footer>
 
-    <!-- Logika Frontend Aplikasi -->
     <script>
         const imageInput = document.getElementById('imageInput');
         const uploadForm = document.getElementById('uploadForm');
@@ -118,10 +112,7 @@
             resultContainer.classList.add('hidden');
 
             try {
-                // PERBAIKAN UTAMA: Menggunakan URL dinamis agar Vercel dapat menangkap data secara online
                 const targetUrl = '/api/remove-bg';
-
-
 
                 const response = await fetch(targetUrl, {
                     method: 'POST',
@@ -139,13 +130,14 @@
                     // Otomatis gulir layar ke bawah untuk melihat hasil
                     resultContainer.scrollIntoView({ behavior: 'smooth' });
                 } else {
+                    // MENYEMPURNAKAN PENANGANAN ERROR: Mengambil pesan error dari backend
                     alert(data.error || 'Terjadi kesalahan pada sistem pemrosesan.');
                 }
             } catch (error) {
                 console.error('Error info:', error);
                 alert('Gagal terhubung ke server cloud. Pastikan jaringan internet Anda stabil.');
             } finally {
-                // Mengembalikan tombol ke status siap pakai
+                // Mengembangkan tombol ke status siap pakai
                 submitBtn.disabled = false;
                 btnText.innerText = 'Proses Sekarang';
             }
